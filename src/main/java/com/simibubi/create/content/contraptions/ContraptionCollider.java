@@ -26,6 +26,7 @@ import com.simibubi.create.foundation.collision.CollisionList.Populate;
 import com.simibubi.create.foundation.collision.ContinuousOBBCollider;
 import com.simibubi.create.foundation.collision.Matrix3d;
 import com.simibubi.create.foundation.collision.OrientedBB;
+import com.simibubi.create.foundation.collision.StepHeightLimiter;
 import com.simibubi.create.foundation.damageTypes.CreateDamageSources;
 import com.simibubi.create.foundation.utility.BlockHelper;
 import com.simibubi.create.infrastructure.config.AllConfigs;
@@ -163,7 +164,7 @@ public class ContraptionCollider {
 				getPotentiallyCollidedShapes(world, contraption, localBB.expandTowards(motion), new Populate(collidableBBs));
 			}
 
-			var collisionResult = ContinuousOBBCollider.collideMany(collidableBBs, denseViableColliders, obb, motion, entity.maxUpStep(), !rotation.hasVerticalRotation());
+			var collisionResult = ContinuousOBBCollider.collideMany(collidableBBs, denseViableColliders, obb, motion, StepHeightLimiter.limit(collidableBBs, obb, entity.maxUpStep(), rotation.hasVerticalRotation()), !rotation.hasVerticalRotation());
 
 			// Resolve collision
 			Vec3 entityMotion = entity.getDeltaMovement();
@@ -402,7 +403,7 @@ public class ContraptionCollider {
 		AABB bb = entity.getBoundingBox()
 			.deflate(1 / 4f, 0, 1 / 4f);
 		double shortestDistance = Double.MAX_VALUE;
-		double yStart = entity.maxUpStep() + contraptionEntity.getY() + yStartOffset;
+		double yStart = Math.min(entity.maxUpStep(), StepHeightLimiter.VANILLA_STEP) + contraptionEntity.getY() + yStartOffset;
 		double rayLength = Math.max(5, Math.abs(entity.getY() - yStart));
 
 		for (int rayIndex = 0; rayIndex < 4; rayIndex++) {
